@@ -3,6 +3,8 @@
 This repository contains a system which allows for remote-attestable code
 to be run from within an nCipher HSM.
 
+**_Work in progress. Subject to change without notice. Use outside of Signal at your own risk._**
+
 ## Overview
 
 HsmEnclave implements an HSM-resident remote-attestable enclave that runs
