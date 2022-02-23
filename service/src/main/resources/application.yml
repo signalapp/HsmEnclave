@@ -1,0 +1,19 @@
+#
+# Copyright 2022 Signal Messenger, LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+
+micronaut:
+  application:
+    name: HsmEnclave-Host
+  metrics:
+    export:
+      datadog:
+        enabled: false
+        apiKey: ${DATADOG_APIKEY:}
+        step: PT1M
+    enabled: true
+
+module:
+  userdata-filename: /tmp/userdata.sar
+  number: 1

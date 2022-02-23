@@ -1,0 +1,87 @@
+/*
+ * Copyright 2022 Signal Messenger, LLC
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+syntax = "proto3";
+
+package org.signal.hsmenclave;
+option java_outer_classname = "ModuleProto";
+
+enum ChannelType {
+  CHANNEL_TYPE_UNKNOWN = 0;
+  CHANNEL_TYPE_UNENCRYPTED = 1;
+  CHANNEL_TYPE_CLIENT_NK = 2;
+  CHANNEL_TYPE_CLIENT_KK_INITIATOR = 3;
+  CHANNEL_TYPE_CLIENT_KK_RESPONDER = 4;
+}
+
+message ChannelInit {
+  oneof proc {
+    uint32 process_id = 1;
+    bytes code_hash = 2;
+  }
+  ChannelType channel_type = 3;
+}
+
+message ProcessCreateRequest {
+  bytes lua_code = 1;
+}
+
+message ProcessCreateResponse {
+  uint32 process_id = 1;
+  bytes code_hash = 2;
+}
+
+message ProcessDestroyRequest {
+  oneof proc {
+    uint32 process_id = 1;
+    bytes code_hash = 2;
+  }
+}
+
+message ProcessDestroyResponse {
+  uint32 process_id = 1;
+}
+
+message CrossProcessChannelCreateRequest {
+  bytes code_hash = 1;
+  string remote_host_address = 2;  // address of GRPC host/port.
+}
+
+message CrossProcessChannelCreateResponse {
+  uint32 local_process_id = 1;
+  uint32 local_channel_id = 2;
+}
+
+message ChannelRequest {
+  oneof kind {
+    bytes channel_message = 1;
+    ChannelInit init = 2;  // first message sent, details which process to connect to
+  }
+}
+
+message ChannelResponse {
+  oneof kind {
+    bytes channel_message = 1;
+    uint32 channel_id = 2;
+  }
+}
+
+message GetModuleMetadataRequest {}
+message GetModuleMetadataResponse {
+  bytes public_key = 1;
+}
+
+service ModuleService {
+  // Request the creation or destruction of a process.
+  rpc ProcessCreate(ProcessCreateRequest) returns (ProcessCreateResponse) {}
+  rpc ProcessDestroy(ProcessDestroyRequest) returns (ProcessDestroyResponse) {}
+
+  // Establish a channel to an existing process.
+  rpc Channel(stream ChannelRequest) returns (stream ChannelResponse) {}
+
+  // Establish a channel between existing processes.
+  rpc CrossProcessChannelCreate(CrossProcessChannelCreateRequest)
+      returns (CrossProcessChannelCreateResponse) {}
+}

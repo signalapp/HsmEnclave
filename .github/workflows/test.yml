@@ -1,0 +1,54 @@
+name: Service CI
+
+on: [push]
+
+jobs:
+  test-c:
+    name: Build and test enclave C
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Setup C dependencies
+        run: sudo apt-get install -y libtool build-essential
+      - name: Build and test
+        working-directory: ./hsmc
+        run: make check
+
+  test-service:
+    name: Build and test web service
+    runs-on: ubuntu-latest
+
+    steps:
+      # TODO: Checking out/building noise-java can go away if it's published to Maven Central
+      - name: Check out noise-java
+        uses: actions/checkout@master
+        with:
+          repository: jon-signal/noise-java
+          path: noise-java
+      - name: Setup C dependencies
+        run: sudo apt-get install -y libtool build-essential
+      - name: Build/install noise-java
+        run: mvn -f noise-java/pom.xml -e -B install
+      - name: Checkout main project
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          path: hsmenclave
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build and test with Maven
+        run: mvn -f hsmenclave/service/pom.xml -e -B verify
+

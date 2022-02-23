@@ -1,0 +1,11 @@
+#
+# Copyright 2022 Signal Messenger, LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+
+applicationType: default
+defaultPackage: front.end
+testFramework: junit
+sourceLanguage: java
+buildTool: maven
+features: [annotation-api, app-name, http-client, java, java-application, junit, logback, management, maven, micrometer, micrometer-datadog, mockito, netty-server, readme, shade, yaml]

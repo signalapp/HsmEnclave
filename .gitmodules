@@ -1,0 +1,9 @@
+[submodule "hsmc/lua"]
+	path = hsmc/lua
+	url = https://github.com/lua/lua.git
+[submodule "hsmc/noise-c"]
+	path = hsmc/noise-c
+	url = https://github.com/rweather/noise-c.git
+[submodule "hsmc/SipHash"]
+	path = hsmc/SipHash
+	url = https://github.com/veorq/SipHash
