@@ -23,6 +23,7 @@ import io.micronaut.grpc.annotation.GrpcChannel;
 import io.micronaut.grpc.server.GrpcEmbeddedServer;
 import io.micronaut.grpc.server.GrpcServerChannel;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -31,7 +32,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.signal.hsmenclave.ModuleProto.ChannelInit;
@@ -321,6 +321,8 @@ class ModuleServiceEndpointTest {
         .build());
     assertNotEquals(0, channelResponses.take().getChannelId());
     assertEquals(ChannelResponse.newBuilder().setChannelMessage(ByteString.copyFrom("abc", StandardCharsets.UTF_8)).build(), channelResponses.take());
+    chanStream.onCompleted();
+    assertTrue(chanLatch.await(1, TimeUnit.SECONDS));
   }
 
   @Test
@@ -345,11 +347,13 @@ class ModuleServiceEndpointTest {
     logger.info("Finished KK creation");
 
     List<BlockingQueue<ChannelResponse>> resps = new ArrayList<>();
+    List<CountDownLatch> latches = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
       // Set up unencrypted channel
       BlockingQueue<ChannelResponse> channelResponses = new LinkedBlockingQueue<>();
       resps.add(channelResponses);
       CountDownLatch chanLatch = new CountDownLatch(1);
+      latches.add(chanLatch);
       final Throwable[] clientError = {null};
       final StreamObserver<ChannelRequest> chanStream = stub.channel(
           new StreamObserver<ChannelResponse>() {
@@ -390,6 +394,10 @@ class ModuleServiceEndpointTest {
             channelResponses.take());
       }
     });
+
+    for (CountDownLatch latch : latches) {
+      assertTrue(latch.await(1, TimeUnit.SECONDS));
+    }
   }
 
   @Test
@@ -477,7 +485,7 @@ class ModuleServiceEndpointTest {
         .build());
     chanStream.onCompleted();
     waitToProcessResponses.countDown();
-    chanLatch.await(1, TimeUnit.SECONDS);
+    assertTrue(chanLatch.await(1, TimeUnit.SECONDS));
     assertEquals(7, channelResponses.size());
     assertNotEquals(0, channelResponses.take().getChannelId());
     assertEquals(List.of(

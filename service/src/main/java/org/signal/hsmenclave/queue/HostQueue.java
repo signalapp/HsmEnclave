@@ -5,6 +5,7 @@
 
 package org.signal.hsmenclave.queue;
 
+import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,8 +13,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.LinkedBlockingQueue;
-import jakarta.annotation.PostConstruct;
-import jakarta.inject.Singleton;
 import org.apache.commons.lang3.tuple.Pair;
 import org.signal.hsmenclave.queue.message.Request;
 import org.signal.hsmenclave.queue.message.Response;
@@ -78,14 +77,7 @@ public class HostQueue {
     this.receiverThread.join();
   }
 
-  @PostConstruct
-  void initialReset() throws Exception {
-    // On creation, reset the HSM to provide it with necessary key material
-    resetHsm().get();
-  }
-
   public CompletableFuture<ResetHsm> resetHsm() {
-    CompletableFuture<ResetHsm> out = new CompletableFuture<>();
     return sendRequest(Request.RESET_REQUEST)
         .thenApply(x -> {
           if (x.size() != 1) throw new CompletionException(new OsException("wanted one response from RESET, got " + x.size()));
@@ -119,6 +111,7 @@ public class HostQueue {
           this.pendingResponses.put(future);
         }
       } catch (Exception e) {
+        logger.warn("Error processing request", e);
         future.completeExceptionally(e);
         continue;
       }
@@ -164,6 +157,7 @@ public class HostQueue {
           }
         }
       } catch (OsException e) {
+        logger.warn("Error processing response", e);
         future.completeExceptionally(e);
         continue;
       } catch (Exception e) {

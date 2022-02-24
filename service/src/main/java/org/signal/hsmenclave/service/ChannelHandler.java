@@ -160,11 +160,11 @@ class ChannelHandler implements StreamObserver<ChannelRequest> {
     completed = true;
     unregister();
     if (throwable != null) {
-      logger.trace("Error received", throwable);
+      logger.trace("Error received: p{} c{}", processId, channelId, throwable);
       channelIdFuture.completeExceptionally(throwable);
       responseObserver.onError(throwable);
     } else {
-      logger.trace("Completing without error");
+      logger.trace("Completing without error: p{} c{}", processId, channelId);
       channelIdFuture.completeExceptionally(Status.ABORTED.asException());
       responseObserver.onCompleted();
     }

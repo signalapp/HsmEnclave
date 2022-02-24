@@ -80,6 +80,8 @@ class EmbeddedServerConnection implements OsConnection {
       final byte[] size = socket.getInputStream().readNBytes(4);
       final int len = ByteBuffer.wrap(size).getInt();
 
+      log.trace("reading {}-byte response", len);
+
       return socket.getInputStream().readNBytes(len);
     } catch (IOException e) {
       throw new OsException("reading incoming", e);

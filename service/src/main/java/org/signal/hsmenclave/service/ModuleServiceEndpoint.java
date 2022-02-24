@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.apache.commons.codec.binary.Hex;
 import org.signal.hsmenclave.ModuleProto;
@@ -82,8 +83,13 @@ public class ModuleServiceEndpoint extends ModuleServiceGrpc.ModuleServiceImplBa
   }
 
   @VisibleForTesting
-  synchronized void reset() throws Exception{
-    hostQueue.resetHsm().get();
+  synchronized void reset() throws Exception {
+    // There’s a race condition to note: a reset request clears the enclave’s outbound queue and
+    // the HostQueue receiver will wait for messages that will never come, thus blocking the reset request from completing.
+    //
+    // Since this method is only used by tests, we can live with this, but a timeout here indicates the test needs to
+    // ensure that all of its messages have been received before calling reset()
+    hostQueue.resetHsm().get(15, TimeUnit.SECONDS);
     processHashToId.clear();
     processIdToHash.clear();
     channelHandlers.clear();
