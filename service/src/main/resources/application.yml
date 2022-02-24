@@ -17,3 +17,5 @@ micronaut:
 module:
   userdata-filename: /tmp/userdata.sar
   number: 1
+
+datadog-environment: test

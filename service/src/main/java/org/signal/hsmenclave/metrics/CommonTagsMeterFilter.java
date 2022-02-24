@@ -8,7 +8,7 @@ package org.signal.hsmenclave.metrics;
 import io.micrometer.core.instrument.Meter.Id;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.config.MeterFilter;
-import io.micronaut.context.ApplicationContext;
+import io.micronaut.context.annotation.Value;
 import jakarta.inject.Singleton;
 import java.util.Optional;
 import java.util.Set;
@@ -18,23 +18,20 @@ import org.slf4j.LoggerFactory;
 @Singleton
 class CommonTagsMeterFilter implements MeterFilter {
 
-  private static final Set<String> STAGES = Set.of("production", "staging");
   private static final Logger logger = LoggerFactory.getLogger(CommonTagsMeterFilter.class);
 
   private final Tags commonTags;
 
-  CommonTagsMeterFilter(final ApplicationContext applicationContext) {
+  CommonTagsMeterFilter(@Value("${datadog-environment}") String datadogEnvironment) {
 
     final String version = org.signal.hsmenclave.metrics.HsmEnclaveVersion.getVersion();
-    final String deploymentStage = findDeploymentStage(applicationContext.getEnvironment().getActiveNames()).orElse(
-        "unknown");
 
-    logger.info("v{} in {}", version, deploymentStage);
+    logger.info("v{} in {}", version, datadogEnvironment);
 
     commonTags = Tags.of(
         "service", GlobalMeterRegistryConfigurer.SERVICE,
         "version", version,
-        "env", deploymentStage,
+        "env", datadogEnvironment,
         "host", HostnameUtil.getLocalHostname()
     );
   }
@@ -58,11 +55,5 @@ class CommonTagsMeterFilter implements MeterFilter {
     }
 
     return id.replaceTags(Tags.concat(id.getTagsAsIterable(), commonTags));
-  }
-
-  private Optional<String> findDeploymentStage(final Set<String> activeNames) {
-    return activeNames.stream()
-        .filter(STAGES::contains)
-        .findAny();
   }
 }
