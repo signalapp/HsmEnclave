@@ -5,6 +5,8 @@
 
 package org.signal.hsmenclave.queue;
 
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Metrics;
 import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +35,6 @@ import org.slf4j.LoggerFactory;
 public class HostQueue {
   private static final Logger logger = LoggerFactory.getLogger(HostQueue.class);
   private static final int CONCURRENTLY_RUNNING_REQUESTS = 3;
-
   private final OsConnection connection;
 
   private volatile boolean running;
@@ -50,6 +51,13 @@ public class HostQueue {
     this.senderThread = new Thread(this::processRequests, "HostQueueSender");
     this.receiverThread = new Thread(this::processResponses, "HostQueueReceiver");
     this.running = true;
+
+    Gauge.builder("HostQueue.pendingRequestQueueSize", pendingRequests, BlockingQueue::size)
+         .register(Metrics.globalRegistry);
+    Gauge.builder("HostQueue.pendingRefsQueueSize", pendingRefs, BlockingQueue::size)
+         .register(Metrics.globalRegistry);
+    Gauge.builder("HostQueue.pendingResponsesQueueSize", pendingResponses, BlockingQueue::size)
+         .register(Metrics.globalRegistry);
 
     this.senderThread.start();
     this.receiverThread.start();
