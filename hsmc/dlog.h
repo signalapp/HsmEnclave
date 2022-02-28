@@ -8,13 +8,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-/** Returns the current microseconds in range [0,1_000_000],
- *  for use in sub-second logging.
- *
- * We don't return the full time, since we expect these to be used
- * mostly for timing subsecond operations, and we expect any provided
- * logs to be displayed host-side with full time information.
- */
+/** Returns the current microseconds since epoch, for use in logging. */
 int64_t time_micros(void);
 
 #ifndef LOGOUT
@@ -26,7 +20,7 @@ int64_t time_micros(void);
 
 // Very simple logging to use within HsmEnclave.
 
-#define LOG(format, ...) fprintf(LOGOUT, "%s:%03d@%06jd " format "\n", __FILE__, __LINE__, time_micros(), ##__VA_ARGS__)
+#define LOG(format, ...) fprintf(LOGOUT, "%jd %s:%03d " format "\n", time_micros(), __FILE__, __LINE__, ##__VA_ARGS__)
 #ifdef DEBUG
 #define DLOG(...) LOG("DEBUG: " __VA_ARGS__)
 #else

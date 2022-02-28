@@ -64,11 +64,12 @@ sandbox_env = {
     sha256 = hsm_enclave_lua_sha256,
     fixedmap = hsm_enclave_lua_fixedmap,
     timestamp_micros = hsm_enclave_lua_timestamp_micros,
+    log = hsm_enclave_lua_log,  -- always logs to host, expensive
   },
 
   -- patched functions
   error = error_patched,
-  print = hsm_enclave_lua_print,
+  print = hsm_enclave_lua_print,  -- logs to host only on debug binary
   setmetatable = setmetatable_patched,
   getmetatable = getmetatable_patched,
 

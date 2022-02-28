@@ -1318,6 +1318,21 @@ static void test_lua_sandbox_print(void) {
       "abcd");
 }
 
+static void test_lua_sandbox_log(void) {
+  call_lua_with_one_input(
+      // code
+      "function HandleChannelCreate(cid, name) end\n"
+      "function HandleChannelClose(cid) end\n"
+      "function HandleChannelMessage(cid, msg)\n"
+      "  enclave.log(msg)\n"
+      "  return {{cid, msg}}\n"
+      "end\n",
+      // input
+      "abcd",
+      // output
+      "abcd");
+}
+
 static void test_lua_state_across_functions(void) {
   call_lua_with_one_input(
       // code
@@ -1722,6 +1737,7 @@ int main(int argc, char** argv) {
   RUN_TEST(test_lua_sandbox_string_fn);
   RUN_TEST(test_lua_sandbox_removes_functions);
   RUN_TEST(test_lua_sandbox_print);
+  RUN_TEST(test_lua_sandbox_log);
   RUN_TEST(test_lua_state_across_functions);
   RUN_TEST(test_lua_stack);
   RUN_TEST(test_process_list);

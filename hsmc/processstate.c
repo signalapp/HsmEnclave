@@ -132,6 +132,16 @@ static int hsm_enclave_lua_print(lua_State* s) {
   return 0;
 }
 
+/** Lua function called to (possibly) print log information.
+ *
+ * Lua arguments (stack position, type):
+ *  logline (1, string)
+ */
+static int hsm_enclave_lua_log(lua_State* s) {
+  LOG("LUA: %s", luaL_checkstring(s, 1));
+  return 0;
+}
+
 /** Lua function called to get the current timestamp in epoch microseconds
  *
  * Lua return value:
@@ -275,6 +285,7 @@ static struct luafunction_t lua_funcs[] = {
   {.name = "hsm_enclave_lua_decrypt", .func = hsm_enclave_lua_decrypt},
   {.name = "hsm_enclave_lua_sha256", .func = hsm_enclave_lua_sha256},
   {.name = "hsm_enclave_lua_print", .func = hsm_enclave_lua_print},
+  {.name = "hsm_enclave_lua_log", .func = hsm_enclave_lua_log},
   {.name = "hsm_enclave_lua_timestamp_micros", .func = hsm_enclave_lua_timestamp_micros},
   {.name = NULL, .func = NULL}
 };
