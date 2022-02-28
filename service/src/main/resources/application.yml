@@ -19,3 +19,7 @@ module:
   number: 1
 
 datadog-environment: test
+
+logger:
+  levels:
+    HSM: TRACE

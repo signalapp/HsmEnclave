@@ -5,6 +5,8 @@
 
 package org.signal.hsmenclave.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.util.regex.Pattern;
  * A simple, embedded "HSM OS" server designed for use in integration tests.
  */
 public class EmbeddedHsmServer {
+  private static final Logger logger = LoggerFactory.getLogger("HSM");
 
   private final int port;
   private Process process;
@@ -57,8 +60,9 @@ public class EmbeddedHsmServer {
 
     process = new ProcessBuilder(executable.getAbsolutePath(), "--port", String.valueOf(this.port))
         .redirectInput(Redirect.INHERIT)
-        .redirectError(Redirect.INHERIT)
         .start();
+
+    new Thread(() -> dumpLogs(process.getErrorStream())).start();
 
     try (final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
       String line = reader.readLine();
@@ -73,6 +77,18 @@ public class EmbeddedHsmServer {
     }
 
     throw new IOException("Failed to start embedded server");
+  }
+
+  private void dumpLogs(InputStream stream) {
+    try (final BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+      while (true) {
+        String line = reader.readLine();
+        if (line == null) return;
+        logger.trace("{}", line);
+      }
+    } catch (IOException e) {
+      logger.warn("Dumping logs failed/finished: {}", e.getMessage());
+    }
   }
 
   /**
