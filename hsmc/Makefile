@@ -77,6 +77,7 @@ TEST_CFLAGS= \
 ## /TEST_CFLAGS
 NATIVE_LDFLAGS= \
     -lm \
+    -lpthread \
 ## /NATIVE_LDFLAGS
 TEST_LDFLAGS= \
     $(NATIVE_LDFLAGS) \
