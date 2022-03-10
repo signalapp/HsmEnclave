@@ -27,6 +27,7 @@ class HostQueueTest {
   void testHostJobQueue() throws Exception {
     OsConnection conn = Mockito.mock(OsConnection.class);
     HostQueue h = new HostQueue(conn);
+    h.start();
     Request req1 = Request.buildChannelMessageRequest(1, 1, new byte[0]);
     Response resp1n = new ResponseMessages(0, 0, 3);
     Response resp11 = new ChannelMessage(1, 2, ByteBuffer.wrap(new byte[]{1}));
@@ -61,11 +62,13 @@ class HostQueueTest {
   void testHsmReturnsInvalidData() throws Exception {
     OsConnection conn = Mockito.mock(OsConnection.class);
     HostQueue h = new HostQueue(conn);
+    h.start();
     Request req1 = Request.buildChannelMessageRequest(1, 1, new byte[0]);
     when(conn.send(Mockito.any())).thenReturn(Long.valueOf(0));
     when(conn.receive(Long.valueOf(0))).thenReturn(new byte[0]);
     final CompletableFuture<List<Response>> j1 = h.sendRequest(req1);
     final Exception e = assertThrows(ExecutionException.class, j1::get);
     assertTrue(e.getCause() instanceof IllegalArgumentException);
+    h.stop();
   }
 }
